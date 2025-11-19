@@ -1,104 +1,116 @@
-// app/posts/[slug]/page.tsx
+import { notFound } from 'next/navigation';
+import Image from 'next/image'; 
+import { getPostBySlug, Post } from '@/lib/firestore'; 
 
-import { getPostBySlug } from '@/lib/firestore'; // Import de la nouvelle fonction
-import Link from 'next/link';
-import Image from 'next/image';
-import { notFound } from 'next/navigation'; // Pour gérer le cas où l'article n'existe pas
-
-// Définition du type pour les props (paramètres de la route)
 interface PostPageProps {
+  // Les params sont définis ici
   params: {
-    slug: string; // Le slug de l'article (ex: mon-super-article)
+    slug: string;
   };
 }
 
-// Ce composant est un Server Component asynchrone pour la récupération des données.
+/**
+ * Composant de page dynamique pour afficher un article spécifique.
+ * Le composant est 'async' pour pouvoir utiliser 'await'.
+ */
 export default async function PostPage({ params }: PostPageProps) {
-  const { slug } = params;
+    // CORRECTION CRITIQUE : Utilisation de 'await' pour s'assurer que les params
+    // sont résolus correctement.
+    const resolvedParams = await params;
+    const slug = resolvedParams.slug;
 
-  // 1. Récupération des données
-  const post = await getPostBySlug(slug);
 
-  // 2. Gestion des erreurs (Article non trouvé)
+  // VÉRIFICATION DE SÉCURITÉ : Assurer que le slug est défini
+  if (!slug) {
+    notFound(); 
+  }
+  
+  // Utilisation de 'await' pour résoudre la Promise de la BDD.
+  const post: Post | null = await getPostBySlug(slug); 
+
+  // Si le post n'est pas trouvé
   if (!post) {
-    // notFound() déclenche la page 404 de Next.js
     notFound(); 
   }
 
-  // 3. Formatage de la date (pour l'affichage)
-  const dateStr = post.createdAt?.toDate().toLocaleDateString('fr-FR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }) || 'Date inconnue';
+  // Conversion du Timestamp (post.createdAt) en Date pour l'affichage.
+  const displayDate = post.createdAt.toDate().toLocaleDateString('fr-FR');
 
 
   return (
-    <div className="max-w-4xl mx-auto p-8 pt-12">
-      
-      {/* Bouton de retour */}
-      <div className="mb-6">
-        <Link href="/" className="text-blue-500 hover:text-blue-300 font-medium transition duration-300">
-          ← Retour à l'accueil
-        </Link>
-      </div>
-
-      <article className="bg-slate-800 p-8 rounded-lg shadow-xl border border-slate-700">
+    <div className="container mx-auto p-8 max-w-4xl bg-slate-800 shadow-2xl rounded-xl mt-10 text-white">
+      <article className="space-y-6">
+        <header className="border-b border-slate-700 pb-4 mb-6">
+          <h1 className="text-4xl font-extrabold text-white mb-2">
+            {post.title}
+          </h1>
+          <p className="text-sm text-gray-400">
+            Publié le {displayDate} par <span className="text-indigo-400 font-medium">{post.author}</span>
+          </p>
+        </header>
         
-        {/* IMAGE D'EN-TÊTE (Style "cover" pour l'esthétisme) */}
+        {/* -------------------- DÉBUT DU BLOC IMAGE (Correction Largeur et Hauteur) -------------------- */}
         {post.imageUrl && (
-            <div className="mb-6 overflow-hidden rounded-lg"> 
-                {/* Hauteur fixe (400px) pour l'en-tête, pleine largeur */}
-                <div className="relative h-[400px] w-full"> 
-                    <Image
+            // w-full pour 100% largeur. 
+            // h-64 sur mobile, md:aspect-video sur desktop pour une hauteur limitée mais proportionnelle.
+            // bg-slate-900 pour le fond très sombre derrière l'image non couverte.
+            <div className="relative w-full h-64 md:aspect-video md:h-auto overflow-hidden rounded-lg shadow-xl mb-8 bg-slate-900">
+                <Image
                     src={post.imageUrl}
-                    alt={post.title}
-                    fill
-                    className="object-cover object-center" // Couvre l'espace, rognage possible
-                    sizes="(max-width: 1024px) 100vw, 900px"
+                    alt={post.title} 
+                    fill 
+                    // NOUVEAU: 'object-contain' assure que l'image est entièrement visible 
+                    // sans être déformée, utilisant le bg-slate-900 pour remplir l'espace vide.
+                    style={{ objectFit: 'contain' }} 
                     priority 
-                    />
-                </div>
+                    sizes="(max-width: 768px) 100vw, 800px"
+                    className="transition-transform duration-500 hover:scale-105" 
+                />
             </div>
         )}
+        {/* -------------------- FIN DU BLOC IMAGE -------------------- */}
 
-        {/* Titre */}
-        <h1 className="text-5xl font-extrabold mb-4 text-white">
-          {post.title}
-        </h1>
+        {/* Affichage du contenu du post */}
+        <div 
+          // Utilisation de dangerouslySetInnerHTML pour injecter le contenu (potentiellement HTML/Markdown converti)
+          className="prose prose-lg max-w-none text-gray-200 leading-relaxed"
+          dangerouslySetInnerHTML={{ __html: post.content || post.description }} 
+        />
         
-        {/* Méta-informations */}
-        <p className="text-sm text-gray-400 mb-8 border-b border-slate-700 pb-4">
-          Publié le {dateStr} par <span className="text-blue-400">{post.author}</span>.
-        </p>
-
-        {/* Contenu COMPLET */}
-        {/* prose-invert stylise le texte (paragraphes, listes, etc.) pour un fond sombre */}
-        <div className="prose prose-lg prose-invert text-gray-300">
-          {/* Affiche le contenu complet de l'article (champ 'content') */}
-          <p>{post.content}</p> 
-          
-          {/* Affichage des tags (optionnel) */}
-          {post.tags && post.tags.length > 0 && (
-            <div className="mt-8 pt-4 border-t border-slate-700">
-              <span className="font-semibold mr-2">Tags:</span>
-              {post.tags.map(tag => (
-                <span key={tag} className="inline-block bg-blue-900/50 text-blue-300 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full">
-                  #{tag}
-                </span>
-              ))}
-            </div>
-          )}
+        <div className="pt-6 border-t border-slate-700 mt-8">
+            <a href="/" className="inline-block px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition duration-300">
+                Retour à l'accueil
+            </a>
         </div>
-
       </article>
-      
-      {/* Bouton de retour */}
-      <div className="mt-8">
-        <Link href="/" className="text-blue-500 hover:text-blue-300 font-medium transition duration-300">
-          ← Retour à l'accueil
-        </Link>
-      </div>
     </div>
   );
+}
+
+// Fonction de génération des métadonnées
+export async function generateMetadata({ 
+    params,
+}: PostPageProps) {
+    // CORRECTION CRITIQUE : Utilisation de 'await' pour s'assurer que les params
+    // sont résolus correctement.
+    const resolvedParams = await params;
+    const slug = resolvedParams.slug;
+    
+    // VÉRIFICATION DE SÉCURITÉ : Assurer que le slug est défini avant l'appel DB
+    if (!slug) {
+        // Retourne un titre par défaut si le slug est manquant
+        return { title: 'Article Non Trouvé', description: 'Le paramètre de slug est manquant.' };
+    }
+    
+  // Récupération des données pour les métadonnées (doit être awaité)
+  const post: Post | null = await getPostBySlug(slug);
+
+  if (!post) {
+    return { title: 'Article Non Trouvé', description: 'Le contenu de cet article est introuvable.' };
+  }
+
+  return {
+    title: post.title,
+    description: post.description || post.content.substring(0, 150) + '...',
+  };
 }
