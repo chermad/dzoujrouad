@@ -8,7 +8,7 @@ export default function Header() {
         
         {/* Logo/Titre du Blog */}
         <Link href="/" className="text-3xl font-extrabold text-white hover:text-blue-400 transition duration-150">
-          Mon Blog JS
+          Mon Blog Moto
         </Link>
 
         {/* Liens de Navigation */}
