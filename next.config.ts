@@ -1,29 +1,37 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Configuration pour le composant Next/Image
+  // Configuration pour le compilateur (Next.js 13+, pour Turbopack/SWC)
+  compiler: {
+    // Par exemple, désactiver console.log en production
+    // removeConsole: process.env.NODE_ENV === "production",
+  },
+  
+  // Configuration pour le composant Image
   images: {
-    // Ajoutez ici le(s) domaine(s) à partir duquel (desquels) vous chargez vos images.
+    // Liste des domaines externes autorisés
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'res.cloudinary.com', // Gardé pour le futur
+        // Domaine ajouté précédemment
+        hostname: 'storage.canalblog.com', 
+        port: '',
+        pathname: '/**',
       },
       {
         protocol: 'https',
-        hostname: 'firebasestorage.googleapis.com', // Domaine principal de Firebase Storage
-      },
-      {
-        protocol: 'https',
-        // Domaine spécifique à votre bucket Firebase Storage
-        hostname: 'blog-moto-dz.firebasestorage.app', 
-      },
-      // 🌟 NOUVEAU : Ajout du domaine Pexels pour l'image actuelle
-      {
-        protocol: 'https',
+        // NOUVEAU DOMAINE : images.pexels.com pour l'image qui cause l'erreur actuelle
         hostname: 'images.pexels.com', 
+        port: '',
+        pathname: '/**',
       },
+      // Ajoutez ici d'autres domaines externes si vous en utilisez
     ],
   },
+  
+  // Si vous utilisez Turbopack, cette ligne peut être nécessaire, sinon elle est ignorée
+  // experimental: {
+  //   serverActions: true,
+  // },
 };
 
 module.exports = nextConfig;
