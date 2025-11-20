@@ -1,12 +1,10 @@
-// app/page.tsx
-
-// 1. Importez le composant qui va chercher les données dans Firebase
-export const dynamic = "force-dynamic"; 
-import LatestPost from '@/components/LatestPost';
+import LatestPost from "@/components/LatestPost";
+import AllPosts from "@/components/AllPosts";
 
 export default function Home() {
   return (
     <div className="max-w-6xl mx-auto py-16 px-4">
+
       <header className="text-center mb-12">
         <h1 className="text-6xl font-extrabold text-white tracking-tight">
           Mon Blog Moto
@@ -16,15 +14,24 @@ export default function Home() {
         </p>
       </header>
 
+      {/* Dernier article */}
       <section className="mt-10">
         <h2 className="text-4xl font-bold text-gray-200 mb-6 text-center">
-          Dernier Article publié.
+          Dernier Article publié
         </h2>
-        
-        {/* CORRECTION : Remplacement du code statique par l'appel au composant asynchrone */}
-        <LatestPost />
 
+        <LatestPost />
       </section>
+
+      {/* Tous les articles */}
+      <section className="mt-20">
+        <h2 className="text-3xl font-bold text-gray-200 mb-6">
+          Tous les articles
+        </h2>
+
+        <AllPosts />
+      </section>
+
     </div>
   );
 }

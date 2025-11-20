@@ -106,3 +106,23 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
         return null; 
     }
 }
+export async function getAllPosts(): Promise<Post[]> {
+  try {
+    const blogCollectionRef = collection(db, 'Blog');
+
+    const q = query(
+      blogCollectionRef,
+      orderBy('createdAt', 'desc') // du plus récent au plus ancien
+    );
+
+    const snapshot = await getDocs(q);
+
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...(doc.data() as Omit<Post, "id">),
+    }));
+  } catch (error) {
+    console.error("Erreur getAllPosts:", error);
+    return [];
+  }
+}
