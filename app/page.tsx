@@ -1,8 +1,9 @@
 // app/page.tsx
 
 // 1. Importez le composant qui va chercher les données dans Firebase
+export const dynamic = "force-dynamic"; 
 import LatestPost from '@/components/LatestPost';
-export const revalidate = 60; 
+
 export default function Home() {
   return (
     <div className="max-w-6xl mx-auto py-16 px-4">
