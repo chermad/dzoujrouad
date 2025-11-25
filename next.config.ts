@@ -24,7 +24,14 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
-      // Ajoutez ici d'autres domaines externes si vous en utilisez
+      {
+        protocol: 'https',
+        // NOUVEAU DOMAINE : images.pexels.com pour l'image qui cause l'erreur actuelle
+        hostname: 'res.cloudinary.com', 
+        port: '',
+        pathname: '/**',
+      },
+      // Ajoutez ici d'autres domaines externes si vous en utilisez 
     ],
   },
   
