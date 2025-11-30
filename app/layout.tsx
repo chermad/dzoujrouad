@@ -5,6 +5,7 @@ import { Inter } from 'next/font/google'; // Importation de la police Inter
 import './globals.css'; // Importe le CSS global
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+export const dynamic = "force-dynamic";
 
 // Initialisation de la police
 const inter = Inter({ subsets: ['latin'] });
