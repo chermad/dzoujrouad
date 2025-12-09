@@ -1,25 +1,20 @@
-// components/LoginModal.tsx
 'use client';
 
 import { useState } from "react";
 import { auth } from "@/lib/firebase"; // Importation de Firebase pour la gestion de l'authentification
 import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 
-interface LoginModalProps {
-  closeModal: () => void; // Fonction pour fermer la modal
-}
-
-export default function LoginModal({ closeModal }: LoginModalProps) {
-  const [isLogin, setIsLogin] = useState(true); // Gère si on est en mode connexion ou inscription
-  const [email, setEmail] = useState(""); // Email de l'utilisateur
-  const [password, setPassword] = useState(""); // Mot de passe de l'utilisateur
-  const [error, setError] = useState(""); // Message d'erreur
+export default function LoginModal({ closeModal }: { closeModal: () => void }) {
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      closeModal(); // Ferme la modal après la connexion
+      closeModal(); 
     } catch (err) {
       console.error("Erreur lors de la connexion avec Google : ", err);
     }
@@ -28,7 +23,7 @@ export default function LoginModal({ closeModal }: LoginModalProps) {
   const handleEmailLogin = async () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      closeModal(); // Ferme la modal après la connexion
+      closeModal(); 
     } catch (err) {
       setError("Erreur de connexion : Vérifiez vos identifiants.");
     }
@@ -37,7 +32,7 @@ export default function LoginModal({ closeModal }: LoginModalProps) {
   const handleEmailSignUp = async () => {
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-      closeModal(); // Ferme la modal après la création du compte
+      closeModal(); 
     } catch (err) {
       setError("Erreur de création de compte : Veuillez vérifier vos informations.");
     }
@@ -46,9 +41,9 @@ export default function LoginModal({ closeModal }: LoginModalProps) {
   return (
     <div 
       className="fixed inset-0 flex justify-center items-center z-50" 
-      style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }} // Utilisation de rgba pour un fond noir semi-transparent
+      style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }} // Utilisation de rgba pour un fond semi-transparent
     >
-      <div className="bg-white p-6 rounded-lg w-96">
+      <div className="bg-white p-6 rounded-lg w-96 dark:bg-gray-800 dark:text-white">
         <h2 className="text-xl font-semibold text-center">{isLogin ? "Se connecter" : "Créer un compte"}</h2>
         <form className="mt-4">
           <div>
@@ -58,7 +53,7 @@ export default function LoginModal({ closeModal }: LoginModalProps) {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-2 border rounded mt-1"
+              className="w-full p-2 border rounded mt-1 dark:bg-gray-700 dark:text-white"
               required
             />
           </div>
@@ -69,7 +64,7 @@ export default function LoginModal({ closeModal }: LoginModalProps) {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-2 border rounded mt-1"
+              className="w-full p-2 border rounded mt-1 dark:bg-gray-700 dark:text-white"
               required
             />
           </div>
@@ -114,7 +109,9 @@ export default function LoginModal({ closeModal }: LoginModalProps) {
         </div>
 
         <div className="mt-4 text-center">
-          <button onClick={closeModal} className="text-gray-500">Fermer</button>
+          <button onClick={closeModal} className="text-gray-500 dark:text-gray-300">
+            Fermer
+          </button>
         </div>
       </div>
     </div>

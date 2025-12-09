@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* Désactive le dark mode forcé de Chrome Android */
+html {
+  color-scheme: light dark;
+}
+
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

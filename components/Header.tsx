@@ -1,6 +1,5 @@
 'use client';
 import LoginModal from "@/components/LoginModal";
-
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { auth } from "@/lib/firebase"; // Importation de Firebase Auth
@@ -10,14 +9,14 @@ export default function Header() {
   const [user, setUser] = useState<User | null>(null); // Suivi de l'utilisateur connecté
   const [isModalOpen, setIsModalOpen] = useState(false); // État pour la modal
   const [avatar, setAvatar] = useState<string>("/default-avatar.png"); // Toujours initialiser avec l'avatar par défaut
-  const [displayName, setDisplayName] = useState<string | null>("");
+  const [email, setEmail] = useState<string>("");
 
   // Suivi de l'état d'authentification
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
-        setDisplayName(currentUser.displayName); // Stocker le nom d'utilisateur (si disponible)
+        setEmail(currentUser.email || ""); // Stocker l'email de l'utilisateur
         // Vérifier que photoURL est valide avant de l'utiliser
         if (currentUser.photoURL && isValidUrl(currentUser.photoURL)) {
           setAvatar(currentUser.photoURL);
@@ -27,7 +26,7 @@ export default function Header() {
       } else {
         setUser(null);
         setAvatar("/default-avatar.png");
-        setDisplayName(null); // Réinitialiser le nom de l'utilisateur
+        setEmail(""); // Réinitialiser l'email à la déconnexion
       }
     });
     return unsubscribe;
@@ -56,10 +55,15 @@ export default function Header() {
 
   return (
     <header className="bg-slate-900 shadow-md border-b border-slate-700">
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-        <Link href="/" className="text-3xl font-extrabold text-white hover:text-blue-400 transition duration-150">
+      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row justify-between items-center">
+        {/* Le titre "Mon Blog Moto" se place tout en haut, en mode mobile */}
+        <Link 
+          href="/" 
+          className="text-3xl font-extrabold text-white hover:text-blue-400 transition duration-150 sm:order-first"
+        >
           Mon Blog Moto
         </Link>
+
         <div className="space-x-4 flex items-center">
           <Link href="/" className="text-gray-300 hover:text-blue-400 font-medium transition duration-150">
             Accueil
@@ -69,7 +73,7 @@ export default function Header() {
           </Link>
           
           {user ? (
-            <div className="flex items-center space-x-3">
+            <div className="flex flex-col sm:flex-row items-center sm:space-x-3 space-y-3 sm:space-y-0">
               <img 
                 src={avatar} 
                 alt="Avatar" 
@@ -79,17 +83,23 @@ export default function Header() {
                   e.currentTarget.src = "/default-avatar.png";
                 }}
               />
-              {/* Affichage du nom ou de l'email de l'utilisateur */}
-              <div className="text-white flex flex-col">
-                {/* Affiche le nom si connecté via Google, sinon l'email */}
-                <span>{displayName || user.email}</span>
+              <div className="text-white flex flex-col items-center sm:items-start">
+                <span>{user.displayName || email}</span>
               </div>
-              <button onClick={handleLogout} className="text-gray-300 hover:text-blue-400 font-medium">
+
+              {/* Le bouton Déconnexion se place en dessous de l'avatar et du nom en mode mobile */}
+              <button
+                onClick={handleLogout}
+                className="text-gray-300 hover:text-blue-400 font-medium sm:px-4 px-2 py-1 rounded-md bg-blue-500 text-white w-full sm:w-auto"
+              >
                 Déconnexion
               </button>
             </div>
           ) : (
-            <button onClick={openModal} className="text-gray-300 hover:text-blue-400 font-medium transition duration-150">
+            <button
+              onClick={openModal}
+              className="text-gray-300 hover:text-blue-400 font-medium sm:px-4 px-2 py-1 rounded-md bg-blue-500 text-white w-full sm:w-auto"
+            >
               Connexion
             </button>
           )}
