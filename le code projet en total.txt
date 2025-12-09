@@ -1,0 +1,873 @@
+======================================================= 
+BUNDLE COMPLET DU PROJET NEXT.JS                      
+======================================================= 
+Date: 09/12/2025  8:59:40,68                                      
+Dossier: C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog                                 
+Dossiers inclus: app, components, lib                  
+======================================================= 
+ 
+[SECTION 1] ARBORESCENCE DU PROJET                     
+======================================================= 
+ 
+DOSSIER: \app                                   
+------------------------------------------------- 
+C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\app\admin
+C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\app\favicon.ico
+C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\app\globals.css
+C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\app\layout.tsx
+C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\app\page.tsx
+C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\app\posts
+C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\app\posts\[slug]
+C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\app\posts\[slug]\page.tsx
+ 
+DOSSIER: \components                                   
+------------------------------------------------- 
+C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\components\AllPosts.tsx
+C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\components\Footer.tsx
+C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\components\Header.tsx
+C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\components\LatestPost.tsx
+C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\components\PostCard.tsx
+ 
+DOSSIER: \lib                                   
+------------------------------------------------- 
+C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\lib\firebase.js
+C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\lib\firestore.ts
+C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\lib\supabaseClient.ts
+ 
+======================================================= 
+FIN DE L'ARBORESCENCE                                  
+======================================================= 
+ 
+ 
+[SECTION 2] CONTENU COMPLET DES FICHIERS               
+======================================================= 
+ 
+[SOUS-SECTION 2.1] FICHIERS DE CONFIGURATION RACINE    
+------------------------------------------------------- 
+ 
+[FICHIER 1] \package.json               
+************************************************ 
+{
+  "name": "mon-blog",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.86.0",
+    "firebase": "^12.6.0",
+    "next": "16.0.3",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.0.3",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
+ 
+************************************************ 
+ 
+[FICHIER 2] \next.config.ts               
+************************************************ 
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // Configuration pour le compilateur (Next.js 13+, pour Turbopack/SWC)
+  compiler: {
+    // Par exemple, désactiver console.log en production
+    // removeConsole: process.env.NODE_ENV === "production",
+  },
+  
+  // Configuration pour le composant Image
+  images: {
+    // Liste des domaines externes autorisés
+    remotePatterns: [
+      {
+        protocol: 'https',
+        // Domaine ajouté précédemment
+        hostname: 'storage.canalblog.com', 
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        // NOUVEAU DOMAINE : images.pexels.com pour l'image qui cause l'erreur actuelle
+        hostname: 'images.pexels.com', 
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        // NOUVEAU DOMAINE : images.pexels.com pour l'image qui cause l'erreur actuelle
+        hostname: 'res.cloudinary.com', 
+        port: '',
+        pathname: '/**',
+      },
+      // Ajoutez ici d'autres domaines externes si vous en utilisez 
+    ],
+  },
+  
+  // Si vous utilisez Turbopack, cette ligne peut être nécessaire, sinon elle est ignorée
+  // experimental: {
+  //   serverActions: true,
+  // },
+};
+
+module.exports = nextConfig; 
+************************************************ 
+ 
+[FICHIER 3] \tsconfig.json               
+************************************************ 
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+}
+ 
+************************************************ 
+ 
+[SOUS-SECTION 2.2] FICHIERS DES DOSSIERS SPECIFIQUES   
+------------------------------------------------------- 
+ 
+[DOSSIER: \app]                                 
+=============================================== 
+ 
+[FICHIER 4] \app\globals.css 
+------------------------------------------- 
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+ 
+------------------------------------------- 
+ 
+[FICHIER 5] \app\layout.tsx 
+------------------------------------------- 
+// app/layout.tsx
+
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google'; // Importation de la police Inter
+import './globals.css'; // Importe le CSS global
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+export const dynamic = "force-dynamic";
+
+// Initialisation de la police
+const inter = Inter({ subsets: ['latin'] });
+
+// Métadonnées de l'application
+export const metadata: Metadata = {
+  title: 'Mon Blog Next.js & Firebase',
+  description: 'Un blog construit pas à pas avec Next.js, Tailwind, et Firebase.',
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  // Cette classe assure le fond sombre pour le <body> et corrige l'erreur d'hydratation.
+  const bodyClasses = `${inter.className} bg-slate-900 text-gray-100 min-h-screen flex flex-col`;
+
+  return (
+    <html lang="fr">
+      <body className={bodyClasses}>
+        
+        <Header />
+        
+        {/* CORRECTION: Ajout de bg-slate-900 à l'élément <main> pour garantir que le fond de la zone de contenu est sombre. */}
+        <main className="flex-grow bg-slate-900"> 
+          {children}
+        </main>
+
+        <Footer />
+      </body>
+    </html>
+  );
+} 
+------------------------------------------- 
+ 
+[FICHIER 6] \app\page.tsx 
+------------------------------------------- 
+import LatestPost from "@/components/LatestPost";
+import AllPosts from "@/components/AllPosts";
+
+export default function Home() {
+  return (
+    <div className="max-w-6xl mx-auto py-16 px-4">
+
+      <header className="text-center mb-12">
+        <h1 className="text-6xl font-extrabold text-white tracking-tight">
+          Mon Blog Moto
+        </h1>
+        <p className="text-xl text-gray-400 mt-3">
+          Le dernier article est chargé dynamiquement ci-dessous.
+        </p>
+      </header>
+
+      {/* Dernier article */}
+      <section className="mt-10">
+        <h2 className="text-4xl font-bold text-gray-200 mb-6 text-center">
+          Dernier Article publié
+        </h2>
+
+        <LatestPost />
+      </section>
+
+      {/* Tous les articles */}
+      <section className="mt-20">
+        <h2 className="text-3xl font-bold text-gray-200 mb-6">
+          Tous les articles
+        </h2>
+
+        <AllPosts />
+      </section>
+
+    </div>
+  );
+}
+ 
+------------------------------------------- 
+ 
+[FICHIER 7] \app\posts\[slug]\page.tsx 
+------------------------------------------- 
+import { notFound } from 'next/navigation';
+import Image from 'next/image'; 
+import { getPostBySlug, Post } from '@/lib/firestore'; 
+
+interface PostPageProps {
+  // Les params sont définis ici
+  params: {
+    slug: string;
+  };
+}
+
+/**
+ * Composant de page dynamique pour afficher un article spécifique.
+ * Le composant est 'async' pour pouvoir utiliser 'await'.
+ */
+export default async function PostPage({ params }: PostPageProps) {
+    // CORRECTION CRITIQUE : Utilisation de 'await' pour s'assurer que les params
+    // sont résolus correctement.
+    const resolvedParams = await params;
+    const slug = resolvedParams.slug;
+
+
+  // VÉRIFICATION DE SÉCURITÉ : Assurer que le slug est défini
+  if (!slug) {
+    notFound(); 
+  }
+  
+  // Utilisation de 'await' pour résoudre la Promise de la BDD.
+  const post: Post | null = await getPostBySlug(slug); 
+
+  // Si le post n'est pas trouvé
+  if (!post) {
+    notFound(); 
+  }
+
+  // Conversion du Timestamp (post.createdAt) en Date pour l'affichage.
+  const displayDate = post.createdAt.toDate().toLocaleDateString('fr-FR');
+
+
+  return (
+    <div className="container mx-auto p-8 max-w-4xl bg-slate-800 shadow-2xl rounded-xl mt-10 text-white">
+      <article className="space-y-6">
+        <header className="border-b border-slate-700 pb-4 mb-6">
+          <h1 className="text-4xl font-extrabold text-white mb-2">
+            {post.title}
+          </h1>
+          <p className="text-sm text-gray-400">
+            Publié le {displayDate} par <span className="text-indigo-400 font-medium">{post.author}</span>
+          </p>
+        </header>
+        
+        {/* -------------------- DÉBUT DU BLOC IMAGE (Correction Largeur et Hauteur) -------------------- */}
+        {post.imageUrl && (
+            // w-full pour 100% largeur. 
+            // h-64 sur mobile, md:aspect-video sur desktop pour une hauteur limitée mais proportionnelle.
+            // bg-slate-900 pour le fond très sombre derrière l'image non couverte.
+            <div className="relative w-full h-64 md:aspect-video md:h-auto overflow-hidden rounded-lg shadow-xl mb-8 bg-slate-900">
+                <Image
+                    src={post.imageUrl}
+                    alt={post.title} 
+                    fill 
+                    // NOUVEAU: 'object-contain' assure que l'image est entièrement visible 
+                    // sans être déformée, utilisant le bg-slate-900 pour remplir l'espace vide.
+                    style={{ objectFit: 'contain' }} 
+                    priority 
+                    sizes="(max-width: 768px) 100vw, 800px"
+                    className="transition-transform duration-500 hover:scale-105" 
+                />
+            </div>
+        )}
+        {/* -------------------- FIN DU BLOC IMAGE -------------------- */}
+
+        {/* Affichage du contenu du post */}
+        <div 
+          // Utilisation de dangerouslySetInnerHTML pour injecter le contenu (potentiellement HTML/Markdown converti)
+          className="prose prose-lg max-w-none text-gray-200 leading-relaxed"
+          dangerouslySetInnerHTML={{ __html: post.content || post.description }} 
+        />
+        
+        <div className="pt-6 border-t border-slate-700 mt-8">
+            <a href="/" className="inline-block px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition duration-300">
+                Retour à l'accueil
+            </a>
+        </div>
+      </article>
+    </div>
+  );
+}
+
+// Fonction de génération des métadonnées
+export async function generateMetadata({ 
+    params,
+}: PostPageProps) {
+    // CORRECTION CRITIQUE : Utilisation de 'await' pour s'assurer que les params
+    // sont résolus correctement.
+    const resolvedParams = await params;
+    const slug = resolvedParams.slug;
+    
+    // VÉRIFICATION DE SÉCURITÉ : Assurer que le slug est défini avant l'appel DB
+    if (!slug) {
+        // Retourne un titre par défaut si le slug est manquant
+        return { title: 'Article Non Trouvé', description: 'Le paramètre de slug est manquant.' };
+    }
+    
+  // Récupération des données pour les métadonnées (doit être awaité)
+  const post: Post | null = await getPostBySlug(slug);
+
+  if (!post) {
+    return { title: 'Article Non Trouvé', description: 'Le contenu de cet article est introuvable.' };
+  }
+
+  return {
+    title: post.title,
+    description: post.description || post.content.substring(0, 150) + '...',
+  };
+} 
+------------------------------------------- 
+ 
+ 
+=============================================== 
+ 
+[DOSSIER: \components]                                 
+=============================================== 
+ 
+[FICHIER 8] \components\AllPosts.tsx 
+------------------------------------------- 
+import { getAllPosts } from "@/lib/firestore";
+import PostCard from "./PostCard";
+
+export default async function AllPosts() {
+  const posts = await getAllPosts();
+
+  if (posts.length === 0) {
+    return (
+      <div className="text-center text-gray-500 py-10">
+        Aucun article trouvé.
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
+      {posts.map(post => (
+        <PostCard key={post.id} post={post} />
+      ))}
+    </div>
+  );
+}
+ 
+------------------------------------------- 
+ 
+[FICHIER 9] \components\Footer.tsx 
+------------------------------------------- 
+// components/Footer.tsx
+export default function Footer() {
+  return (
+    <footer className="bg-slate-900 border-t border-slate-700 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-500">
+        <p>
+          &copy; {new Date().getFullYear()} Mon Blog JS. Tous droits réservés.
+        </p>
+        <p className="mt-1">
+          Projet d'apprentissage Next.js et Firebase.
+        </p>
+      </div>
+    </footer>
+  );
+} 
+------------------------------------------- 
+ 
+[FICHIER 10] \components\Header.tsx 
+------------------------------------------- 
+// components/Header.tsx
+import Link from 'next/link';
+
+export default function Header() {
+  return (
+    <header className="bg-slate-900 shadow-md border-b border-slate-700">
+      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+        
+        {/* Logo/Titre du Blog */}
+        <Link href="/" className="text-3xl font-extrabold text-white hover:text-blue-400 transition duration-150">
+          Mon Blog Moto
+        </Link>
+
+        {/* Liens de Navigation */}
+        <div className="space-x-4">
+          <Link href="/" className="text-gray-300 hover:text-blue-400 font-medium transition duration-150">
+            Accueil
+          </Link>
+          {/* Lien Admin */}
+          <Link href="/admin" className="text-blue-400 hover:text-blue-300 font-medium border border-blue-400 px-3 py-1 rounded-md transition duration-150">
+            Admin
+          </Link>
+        </div>
+      </nav>
+    </header>
+  );
+} 
+------------------------------------------- 
+ 
+[FICHIER 11] \components\LatestPost.tsx 
+------------------------------------------- 
+// components/LatestPost.tsx
+
+import { getLatestPost } from '@/lib/firestore';
+import Link from 'next/link';
+import Image from 'next/image'; 
+import { Post } from '@/lib/firestore'; 
+
+export default async function LatestPost() {
+  
+  const post: Post | null = await getLatestPost();
+
+  if (!post) {
+    return (
+      <div className="text-center text-gray-500 py-10">
+        <p>Aucun article de blog n'a encore été publié.</p>
+        <p className="mt-2 text-sm">Veuillez ajouter un document à la collection 'Blog' de Firestore.</p> 
+      </div>
+    );
+  }
+
+  const dateStr = post.createdAt?.toDate().toLocaleDateString('fr-FR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }) || 'Date inconnue';
+  
+  const postUrl = `/posts/${post.slug || post.id}`;
+
+  return (
+    <div className="max-w-4xl mx-auto p-8 bg-slate-800 rounded-xl shadow-2xl border border-slate-700 hover:border-blue-500 transition duration-300">
+      
+      {/* 🌟 CORRECTION : Utilisation de l'aspect-ratio pour une image 16:9 responsive */}
+      {post.imageUrl && (
+        <div className="mb-6 overflow-hidden rounded-lg">
+          {/* Remplacer h-64 par aspect-video (16/9) ou aspect-w-16/aspect-h-9 pour un ratio plus classique de blog. */}
+          {/* Si vous utilisez une version récente de Tailwind (v3+), aspect-video fonctionne directement. */}
+          <div className="relative w-full aspect-video"> 
+            <Image
+              src={post.imageUrl}
+              alt={post.title}
+              fill
+              // object-cover garantit qu'il couvre le conteneur 16:9, coupant les bords si l'image originale a un ratio différent.
+              className="object-cover" 
+              sizes="(max-width: 1024px) 100vw, 768px"
+              priority 
+            />
+          </div>
+        </div>
+      )}
+
+      <h2 className="text-3xl font-bold mb-3 text-blue-400">
+        {post.title}
+      </h2>
+      <p className="text-sm text-gray-500 mb-6">
+        Publié le : {dateStr}
+      </p>
+      
+      <div className="text-gray-300 leading-relaxed">
+        <p>{post.description}</p>
+      </div>
+
+      <Link
+        href={postUrl}
+        className="mt-6 inline-block px-4 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-500 transition duration-300"
+      >
+        Lire l'article complet
+      </Link>
+    </div>
+  );
+} 
+------------------------------------------- 
+ 
+[FICHIER 12] \components\PostCard.tsx 
+------------------------------------------- 
+import Image from 'next/image';
+import Link from 'next/link';
+// Importez l'interface Post du fichier d'origine qui est TypeScript
+import { Post } from '@/lib/firestore'; 
+
+interface PostCardProps {
+    post: Post;
+}
+
+/**
+ * Composant pour afficher un résumé d'article sous forme de carte.
+ * Il présente l'image à gauche et les métadonnées/description à droite.
+ */
+export default function PostCard({ post }: PostCardProps) {
+    const displayDate = post.createdAt.toDate().toLocaleDateString('fr-FR');
+    const postUrl = `/posts/${post.slug}`;
+
+    // Fonction pour tronquer la description à un nombre de caractères (ex: 200)
+    const truncateDescription = (text: string, limit: number) => {
+        if (!text || text.length <= limit) {
+            return text;
+        }
+        // Trouve le dernier espace avant la limite
+        const trimmedText = text.substring(0, limit);
+        return trimmedText.substring(0, Math.min(trimmedText.length, trimmedText.lastIndexOf(' '))) + '...';
+    };
+
+    const shortDescription = truncateDescription(post.description, 200);
+
+    return (
+        <div className="bg-slate-800 rounded-xl shadow-lg hover:shadow-2xl transition duration-300 overflow-hidden border border-slate-700">
+            {/* Le lien englobe toute la zone cliquable */}
+            <Link href={postUrl} className="flex flex-col md:flex-row h-full">
+                
+                {/* Conteneur pour l'Image et les Métadonnées (gauche/haut) */}
+                <div className="relative w-full md:w-1/3 bg-slate-900 overflow-hidden flex flex-col">
+                    {/* Image principale */}
+                    <div className="relative w-full h-48 md:h-full">
+                        {post.imageUrl ? (
+                            <Image
+                                src={post.imageUrl}
+                                alt={post.title}
+                                fill
+                                style={{ objectFit: 'cover' }}
+                                sizes="(max-width: 768px) 100vw, 33vw"
+                                className="transition-transform duration-500 hover:scale-110"
+                            />
+                        ) : (
+                            <div className="flex items-center justify-center w-full h-full text-gray-400 text-sm">
+                                Pas d'image
+                            </div>
+                        )}
+                    </div>
+                    
+                    {/* Auteur et Date (EN DESSOUS de l'image sur Mobile/Tablet, ou dans la colonne de gauche) */}
+                    <div className="p-3 bg-slate-900 border-t border-slate-700 text-xs text-gray-400">
+                        <p className="font-semibold text-white">Par : {post.author}</p>
+                        <p>Publié le : {displayDate}</p>
+                    </div>
+                </div>
+
+                {/* Contenu (Titre et Description Tronquée) (droite/bas) */}
+                <div className="p-4 md:w-2/3 flex flex-col justify-between">
+                    <div>
+                        <h2 className="text-2xl font-bold text-white mb-2 leading-tight hover:text-indigo-400 transition">
+                            {post.title}
+                        </h2>
+                        
+                        {/* Description Tronquée */}
+                        <p className="text-gray-300 text-base mt-2">
+                            {shortDescription}
+                        </p>
+                    </div>
+
+                    {/* Lien "Lire la suite" */}
+                    <div className="mt-4">
+                        <span className="inline-block px-4 py-2 text-indigo-400 border border-indigo-400 font-semibold rounded-lg hover:bg-indigo-400 hover:text-white transition duration-300">
+                            Lire la suite →
+                        </span>
+                    </div>
+                </div>
+            </Link>
+        </div>
+    );
+} 
+------------------------------------------- 
+ 
+ 
+=============================================== 
+ 
+[DOSSIER: \lib]                                 
+=============================================== 
+ 
+[FICHIER 13] \lib\firebase.js 
+------------------------------------------- 
+// lib/firebase.js
+
+import { initializeApp } from "firebase/app";
+// Importation du service Firestore et du type Timestamp
+import { getFirestore, Timestamp } from "firebase/firestore";
+
+// Configuration Firebase chargée depuis .env.local
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+};
+
+// Initialisation de l'application Firebase
+const app = initializeApp(firebaseConfig);
+
+// Initialisation du service Firestore
+const db = getFirestore(app);
+
+// Exportation des services pour les autres modules
+export { db, Timestamp }; 
+------------------------------------------- 
+ 
+[FICHIER 14] \lib\firestore.ts 
+------------------------------------------- 
+// lib/firestore.ts
+
+import { db, Timestamp } from './firebase';
+// Import de 'where' est nécessaire pour la fonction getPostBySlug
+import { collection, query, orderBy, limit, getDocs, where } from 'firebase/firestore'; 
+
+// Définition de l'interface pour un Article de Blog (basée sur votre structure Firestore)
+export interface Post {
+  id: string;
+  title: string;
+  slug: string;
+  content: string; // Contenu complet de l'article
+  createdAt: Timestamp; // Le type Timestamp de Firebase
+  author: string;
+  description: string;
+  imageUrl: string;
+  isPublished: boolean;
+  tags: string[];
+}
+
+/**
+ * Récupère le dernier article du blog depuis la collection 'Blog' de Firestore.
+ * Cette fonction est appelée côté serveur (dans un Server Component).
+ * @returns Le dernier article (Post) ou null.
+ */
+export async function getLatestPost(): Promise<Post | null> {
+  try {
+    const blogCollectionRef = collection(db, 'Blog'); 
+
+    // Requête: trier par 'createdAt' (descendant) et limiter à 1
+    const q = query(
+      blogCollectionRef,
+      orderBy('createdAt', 'desc'),
+      limit(1)
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      const doc = querySnapshot.docs[0];
+      const data = doc.data();
+
+      // Utilisation du type Post grâce à l'extension .ts
+      return { 
+        id: doc.id, 
+        author: data.author,
+        content: data.content,
+        createdAt: data.createdAt,
+        description: data.description,
+        imageUrl: data.imageUrl,
+        isPublished: data.isPublished,
+        slug: data.slug,
+        tags: data.tags,
+        title: data.title,
+      } as Post;
+    } else {
+      return null; // Aucun article trouvé
+    }
+  } catch (error) {
+    // Loggez l'erreur pour le débogage côté serveur
+    console.error("Erreur lors de la récupération du dernier article:", error);
+    return null; 
+  }
+}
+
+/**
+ * Récupère un article par son slug.
+ * @param slug Le slug de l'article à rechercher.
+ * @returns L'article (Post) ou null.
+ */
+export async function getPostBySlug(slug: string): Promise<Post | null> {
+    try {
+        const blogCollectionRef = collection(db, 'Blog'); 
+
+        // Requête: filtrer par le champ 'slug' égal au slug fourni
+        // NOTE: Firestore peut nécessiter un index pour cette requête de filtre (où)
+        const q = query(
+            blogCollectionRef,
+            where('slug', '==', slug), // Filtrer par slug
+            limit(1)
+        );
+
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            const doc = querySnapshot.docs[0];
+            const data = doc.data();
+
+            return { 
+                id: doc.id, 
+                author: data.author,
+                content: data.content,
+                createdAt: data.createdAt,
+                description: data.description,
+                imageUrl: data.imageUrl,
+                isPublished: data.isPublished,
+                slug: data.slug,
+                tags: data.tags,
+                title: data.title,
+            } as Post;
+        } else {
+            return null; // Aucun article trouvé
+        }
+    } catch (error) {
+        console.error(`Erreur lors de la récupération de l'article avec slug ${slug}:`, error);
+        return null; 
+    }
+}
+export async function getAllPosts(): Promise<Post[]> {
+  try {
+    const blogCollectionRef = collection(db, 'Blog');
+
+    const q = query(
+      blogCollectionRef,
+      orderBy('createdAt', 'desc') // du plus récent au plus ancien
+    );
+
+    const snapshot = await getDocs(q);
+
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...(doc.data() as Omit<Post, "id">),
+    }));
+  } catch (error) {
+    console.error("Erreur getAllPosts:", error);
+    return [];
+  }
+}
+ 
+------------------------------------------- 
+ 
+[FICHIER 15] \lib\supabaseClient.ts 
+------------------------------------------- 
+ 
+------------------------------------------- 
+ 
+ 
+=============================================== 
+ 
+[SECTION 3] FICHIER .ENV.LOCAL (STRUCTURE
+======================================================= 
+ 
+[FICHIER 16] \.env.local             
+************************************************ 
+NOTA: Les valeurs sensibles sont masquees           
+************************************************ 
+ 
+# Firebase (sans Storage)=***VALUE_MASQUEE***        
+NEXT_PUBLIC_FIREBASE_API_KEY=***VALUE_MASQUEE***        
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=***VALUE_MASQUEE***        
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=***VALUE_MASQUEE***        
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=***VALUE_MASQUEE***        
+NEXT_PUBLIC_FIREBASE_APP_ID=***VALUE_MASQUEE***        
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=***VALUE_MASQUEE***        
+# Cloudinary (solution stockage)=***VALUE_MASQUEE***        
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=***VALUE_MASQUEE***        
+NEXT_PUBLIC_CLOUDINARY_API_KEY=***VALUE_MASQUEE***        
+CLOUDINARY_API_SECRET=***VALUE_MASQUEE***        
+# Supabase(solution stockage)=***VALUE_MASQUEE***        
+NEXT_PUBLIC_SUPABASE_URL=***VALUE_MASQUEE***        
+NEXT_PUBLIC_SUPABASE_ANON_KEY=***VALUE_MASQUEE***        
+SUPABASE_SERVICE_ROLE_KEY=***VALUE_MASQUEE***        
+# NextAuth=***VALUE_MASQUEE***        
+NEXTAUTH_URL=***VALUE_MASQUEE***        
+NEXTAUTH_SECRET=***VALUE_MASQUEE***        
+ 
+************************************************ 
+ 
+ 
+======================================================= 
+RESUMÉ FINAL                                            
+======================================================= 
+ 
+Nombre total de fichiers: 16             
+Dossiers inclus: app, components, lib                  
+Date de generation: 09/12/2025  8:59:40,68                        
+======================================================= 
+FIN DU BUNDLE                                          
+======================================================= 
