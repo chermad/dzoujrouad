@@ -1,19 +1,28 @@
 // components/LatestPost.tsx
 
-import { getLatestPost } from '@/lib/firestore';
+import { getAllPosts } from '@/lib/firestore'; // Utilisez getAllPosts au lieu de getLatestPost
 import Link from 'next/link';
 import Image from 'next/image'; 
 import { Post } from '@/lib/firestore'; 
 
 export default async function LatestPost() {
+  const allPosts = await getAllPosts();
   
-  const post: Post | null = await getLatestPost();
+  // Filtrer uniquement les articles publiés
+  const publishedPosts = allPosts.filter(post => post.isPublished === true);
+  
+  // Trier par date (du plus récent au plus ancien) et prendre le premier
+  const sortedPosts = publishedPosts.sort((a, b) => 
+    b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime()
+  );
+  
+  const post = sortedPosts.length > 0 ? sortedPosts[0] : null;
 
   if (!post) {
     return (
       <div className="text-center text-gray-500 py-10">
-        <p>Aucun article de blog n'a encore été publié.</p>
-        <p className="mt-2 text-sm">Veuillez ajouter un document à la collection 'Blog' de Firestore.</p> 
+        <p>Aucun article publié pour le moment.</p>
+        <p className="mt-2 text-sm">Veuillez publier un article dans l'interface admin.</p> 
       </div>
     );
   }
@@ -32,14 +41,11 @@ export default async function LatestPost() {
       {/* 🌟 CORRECTION : Utilisation de l'aspect-ratio pour une image 16:9 responsive */}
       {post.imageUrl && (
         <div className="mb-6 overflow-hidden rounded-lg">
-          {/* Remplacer h-64 par aspect-video (16/9) ou aspect-w-16/aspect-h-9 pour un ratio plus classique de blog. */}
-          {/* Si vous utilisez une version récente de Tailwind (v3+), aspect-video fonctionne directement. */}
           <div className="relative w-full aspect-video"> 
             <Image
               src={post.imageUrl}
               alt={post.title}
               fill
-              // object-cover garantit qu'il couvre le conteneur 16:9, coupant les bords si l'image originale a un ratio différent.
               className="object-cover" 
               sizes="(max-width: 1024px) 100vw, 768px"
               priority 

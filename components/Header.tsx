@@ -1,11 +1,10 @@
 'use client';
-import LoginModal from "@/components/LoginModal";
-
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { auth } from "@/lib/firebase"; // Importation de Firebase Auth
 import { signOut, onAuthStateChanged, User } from "firebase/auth";
+import LoginModal from "@/components/LoginModal";  // Importation de la modal de connexion
 
 export default function Header() {
   const [user, setUser] = useState<User | null>(null); // Suivi de l'utilisateur connecté
@@ -77,9 +76,13 @@ export default function Header() {
           <Link href="/" className="text-gray-300 hover:text-blue-400 font-medium transition duration-150">
             Accueil
           </Link>
-          <Link href="/admin" className="text-blue-400 hover:text-blue-300 font-medium border border-blue-400 px-3 py-1 rounded-md transition duration-150">
-            Admin
-          </Link>
+
+          {/* Afficher le bouton "Admin" seulement si l'utilisateur est admin */}
+          {isAdmin && (
+            <Link href="/admin" className="text-blue-400 hover:text-blue-300 font-medium border border-blue-400 px-3 py-1 rounded-md transition duration-150">
+              Admin
+            </Link>
+          )}
           
           {user ? (
             <div className="flex flex-col sm:flex-row items-center sm:space-x-3 space-y-3 sm:space-y-0">

@@ -1,8 +1,5 @@
-// lib/firestore.ts
-
 import { db, Timestamp } from './firebase';
-// Import de 'where' est nécessaire pour la fonction getPostBySlug
-import { collection, query, orderBy, limit, getDocs, where } from 'firebase/firestore'; 
+import { collection, query, orderBy, limit, getDocs, where, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
 // Définition de l'interface pour un Article de Blog (basée sur votre structure Firestore)
 export interface Post {
@@ -40,7 +37,6 @@ export async function getLatestPost(): Promise<Post | null> {
       const doc = querySnapshot.docs[0];
       const data = doc.data();
 
-      // Utilisation du type Post grâce à l'extension .ts
       return { 
         id: doc.id, 
         author: data.author,
@@ -57,7 +53,6 @@ export async function getLatestPost(): Promise<Post | null> {
       return null; // Aucun article trouvé
     }
   } catch (error) {
-    // Loggez l'erreur pour le débogage côté serveur
     console.error("Erreur lors de la récupération du dernier article:", error);
     return null; 
   }
@@ -69,43 +64,47 @@ export async function getLatestPost(): Promise<Post | null> {
  * @returns L'article (Post) ou null.
  */
 export async function getPostBySlug(slug: string): Promise<Post | null> {
-    try {
-        const blogCollectionRef = collection(db, 'Blog'); 
+  try {
+    const blogCollectionRef = collection(db, 'Blog'); 
 
-        // Requête: filtrer par le champ 'slug' égal au slug fourni
-        // NOTE: Firestore peut nécessiter un index pour cette requête de filtre (où)
-        const q = query(
-            blogCollectionRef,
-            where('slug', '==', slug), // Filtrer par slug
-            limit(1)
-        );
+    // Requête: filtrer par le champ 'slug' égal au slug fourni
+    const q = query(
+      blogCollectionRef,
+      where('slug', '==', slug), // Filtrer par slug
+      limit(1)
+    );
 
-        const querySnapshot = await getDocs(q);
+    const querySnapshot = await getDocs(q);
 
-        if (!querySnapshot.empty) {
-            const doc = querySnapshot.docs[0];
-            const data = doc.data();
+    if (!querySnapshot.empty) {
+      const doc = querySnapshot.docs[0];
+      const data = doc.data();
 
-            return { 
-                id: doc.id, 
-                author: data.author,
-                content: data.content,
-                createdAt: data.createdAt,
-                description: data.description,
-                imageUrl: data.imageUrl,
-                isPublished: data.isPublished,
-                slug: data.slug,
-                tags: data.tags,
-                title: data.title,
-            } as Post;
-        } else {
-            return null; // Aucun article trouvé
-        }
-    } catch (error) {
-        console.error(`Erreur lors de la récupération de l'article avec slug ${slug}:`, error);
-        return null; 
+      return { 
+        id: doc.id, 
+        author: data.author,
+        content: data.content,
+        createdAt: data.createdAt,
+        description: data.description,
+        imageUrl: data.imageUrl,
+        isPublished: data.isPublished,
+        slug: data.slug,
+        tags: data.tags,
+        title: data.title,
+      } as Post;
+    } else {
+      return null; // Aucun article trouvé
     }
+  } catch (error) {
+    console.error(`Erreur lors de la récupération de l'article avec slug ${slug}:`, error);
+    return null; 
+  }
 }
+
+/**
+ * Récupère tous les articles du blog depuis la collection 'Blog' de Firestore.
+ * @returns La liste des articles (Post[]).
+ */
 export async function getAllPosts(): Promise<Post[]> {
   try {
     const blogCollectionRef = collection(db, 'Blog');
@@ -124,5 +123,59 @@ export async function getAllPosts(): Promise<Post[]> {
   } catch (error) {
     console.error("Erreur getAllPosts:", error);
     return [];
+  }
+}
+
+/**
+ * Supprime un article de la collection 'Blog' en utilisant son ID.
+ * @param postId L'ID de l'article à supprimer.
+ */
+export async function deletePost(postId: string): Promise<void> {
+  try {
+    const postRef = doc(db, 'Blog', postId);
+    await deleteDoc(postRef);
+    console.log(`Article ${postId} supprimé avec succès.`);
+  } catch (error) {
+    console.error(`Erreur lors de la suppression de l'article ${postId}:`, error);
+    throw new Error("La suppression a échoué.");
+  }
+}
+
+/**
+ * Met à jour un article existant dans la collection 'Blog'.
+ * @param postId L'ID de l'article à mettre à jour.
+ * @param updatedPost Les nouvelles données de l'article à enregistrer.
+ */
+export async function updatePost(postId: string, updatedPost: Omit<Post, 'id'>): Promise<void> {
+  try {
+    const postRef = doc(db, 'Blog', postId);
+    await updateDoc(postRef, updatedPost);
+    console.log(`Article ${postId} mis à jour avec succès.`);
+  } catch (error) {
+    console.error(`Erreur lors de la mise à jour de l'article ${postId}:`, error);
+    throw new Error("La mise à jour a échoué.");
+  }
+}
+
+/**
+ * Ajoute un nouveau article dans la collection 'Blog'.
+ * @param newPost Les données du nouvel article à ajouter.
+ * @returns L'ID du nouvel article ajouté.
+ */
+export async function addNewPost(newPost: Omit<Post, 'id'>): Promise<string> {
+  try {
+    const blogCollectionRef = collection(db, 'Blog');
+
+    // Ajout d'un nouveau document dans Firestore
+    const docRef = await addDoc(blogCollectionRef, {
+      ...newPost,
+      createdAt: Timestamp.now(), // Ajouter la date de création
+    });
+
+    console.log(`Article ajouté avec succès : ${docRef.id}`);
+    return docRef.id;
+  } catch (error) {
+    console.error("Erreur lors de l'ajout du nouvel article:", error);
+    throw new Error("L'ajout a échoué.");
   }
 }

@@ -1,7 +1,7 @@
 ======================================================= 
 BUNDLE COMPLET DU PROJET NEXT.JS                      
 ======================================================= 
-Date: 09/12/2025  8:59:40,68                                      
+Date: 11/12/2025 13:16:45,78                                      
 Dossier: C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog                                 
 Dossiers inclus: app, components, lib                  
 ======================================================= 
@@ -17,6 +17,7 @@ C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\app\globals.css
 C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\app\layout.tsx
 C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\app\page.tsx
 C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\app\posts
+C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\app\admin\page.tsx
 C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\app\posts\[slug]
 C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\app\posts\[slug]\page.tsx
  
@@ -26,6 +27,7 @@ C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\components\AllPosts.tsx
 C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\components\Footer.tsx
 C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\components\Header.tsx
 C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\components\LatestPost.tsx
+C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\components\LoginModal.tsx
 C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\components\PostCard.tsx
  
 DOSSIER: \lib                                   
@@ -33,6 +35,7 @@ DOSSIER: \lib
 C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\lib\firebase.js
 C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\lib\firestore.ts
 C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\lib\supabaseClient.ts
+C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog\lib\temp.js
  
 ======================================================= 
 FIN DE L'ARBORESCENCE                                  
@@ -60,7 +63,7 @@ FIN DE L'ARBORESCENCE
   "dependencies": {
     "@supabase/supabase-js": "^2.86.0",
     "firebase": "^12.6.0",
-    "next": "16.0.3",
+    "next": "^16.0.8",
     "react": "19.2.0",
     "react-dom": "19.2.0"
   },
@@ -174,6 +177,12 @@ module.exports = nextConfig;
 [FICHIER 4] \app\globals.css 
 ------------------------------------------- 
 @import "tailwindcss";
+
+/* Désactive le dark mode forcé de Chrome Android */
+html {
+  color-scheme: light dark;
+}
+
 
 :root {
   --background: #ffffff;
@@ -290,7 +299,13 @@ export default function Home() {
  
 ------------------------------------------- 
  
-[FICHIER 7] \app\posts\[slug]\page.tsx 
+[FICHIER 7] \app\admin\page.tsx 
+------------------------------------------- 
+export default function Home() {
+  return ( <div><p>no thing to compare</p> </div>  )} 
+------------------------------------------- 
+ 
+[FICHIER 8] \app\posts\[slug]\page.tsx 
 ------------------------------------------- 
 import { notFound } from 'next/navigation';
 import Image from 'next/image'; 
@@ -416,7 +431,7 @@ export async function generateMetadata({
 [DOSSIER: \components]                                 
 =============================================== 
  
-[FICHIER 8] \components\AllPosts.tsx 
+[FICHIER 9] \components\AllPosts.tsx 
 ------------------------------------------- 
 import { getAllPosts } from "@/lib/firestore";
 import PostCard from "./PostCard";
@@ -443,7 +458,7 @@ export default async function AllPosts() {
  
 ------------------------------------------- 
  
-[FICHIER 9] \components\Footer.tsx 
+[FICHIER 10] \components\Footer.tsx 
 ------------------------------------------- 
 // components/Footer.tsx
 export default function Footer() {
@@ -462,38 +477,139 @@ export default function Footer() {
 } 
 ------------------------------------------- 
  
-[FICHIER 10] \components\Header.tsx 
+[FICHIER 11] \components\Header.tsx 
 ------------------------------------------- 
-// components/Header.tsx
-import Link from 'next/link';
+'use client';
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { auth } from "@/lib/firebase"; // Importation de Firebase Auth
+import { signOut, onAuthStateChanged, User } from "firebase/auth";
+import LoginModal from "@/components/LoginModal";  // Importation de la modal de connexion
 
 export default function Header() {
+  const [user, setUser] = useState<User | null>(null); // Suivi de l'utilisateur connecté
+  const [isModalOpen, setIsModalOpen] = useState(false); // État pour la modal
+  const [avatar, setAvatar] = useState<string>("/default-avatar.png"); // Toujours initialiser avec l'avatar par défaut
+  const [email, setEmail] = useState<string>("");
+  const [isAdmin, setIsAdmin] = useState(false); // Nouvel état pour vérifier si l'utilisateur est admin
+
+  // Suivi de l'état d'authentification
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+        setEmail(currentUser.email || ""); // Stocker l'email de l'utilisateur
+        // Vérifier que photoURL est valide avant de l'utiliser
+        if (currentUser.photoURL && isValidUrl(currentUser.photoURL)) {
+          setAvatar(currentUser.photoURL);
+        } else {
+          setAvatar("/default-avatar.png");
+        }
+
+        // Vérifier si l'utilisateur est un admin
+        currentUser.getIdTokenResult().then((idTokenResult) => {
+          if (idTokenResult.claims.role === 'admin') {
+            setIsAdmin(true);
+          }
+        }).catch((error) => {
+          console.error("Erreur lors de la récupération des claims : ", error);
+        });
+
+      } else {
+        setUser(null);
+        setAvatar("/default-avatar.png");
+        setEmail(""); // Réinitialiser l'email à la déconnexion
+        setIsAdmin(false); // Réinitialiser l'état d'admin
+      }
+    });
+    return unsubscribe;
+  }, []);
+
+  // Fonction pour valider l'URL
+  const isValidUrl = (urlString: string) => {
+    try {
+      const url = new URL(urlString);
+      return url.protocol === "http:" || url.protocol === "https:";
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Erreur de déconnexion:", error);
+    }
+  };
+
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+
   return (
     <header className="bg-slate-900 shadow-md border-b border-slate-700">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-        
-        {/* Logo/Titre du Blog */}
         <Link href="/" className="text-3xl font-extrabold text-white hover:text-blue-400 transition duration-150">
           Mon Blog Moto
         </Link>
-
-        {/* Liens de Navigation */}
-        <div className="space-x-4">
+        <div className="space-x-4 flex items-center">
           <Link href="/" className="text-gray-300 hover:text-blue-400 font-medium transition duration-150">
             Accueil
           </Link>
-          {/* Lien Admin */}
-          <Link href="/admin" className="text-blue-400 hover:text-blue-300 font-medium border border-blue-400 px-3 py-1 rounded-md transition duration-150">
-            Admin
-          </Link>
+
+          {/* Afficher le bouton "Admin" seulement si l'utilisateur est admin */}
+          {isAdmin && (
+            <Link href="/admin" className="text-blue-400 hover:text-blue-300 font-medium border border-blue-400 px-3 py-1 rounded-md transition duration-150">
+              Admin
+            </Link>
+          )}
+          
+          {user ? (
+            <div className="flex flex-col sm:flex-row items-center sm:space-x-3 space-y-3 sm:space-y-0">
+              <img 
+                src={avatar} 
+                alt="Avatar" 
+                className="w-8 h-8 rounded-full" 
+                onError={(e) => {
+                  // Simplement remplacer par l'avatar par défaut une seule fois
+                  e.currentTarget.src = "/default-avatar.png";
+                }}
+              />
+              <div className="text-white flex flex-col items-center sm:items-start">
+                <span>{user.displayName || email}</span>
+                {/* Afficher l'icône 🔑 si l'utilisateur est un admin */}
+                {isAdmin && (
+                  <span className="text-yellow-500 ml-2">🔑</span>  // Icône clé pour admin
+                )}
+              </div>
+
+              <button
+                onClick={handleLogout}
+                className="text-gray-300 hover:text-blue-400 font-medium sm:px-4 px-2 py-1 rounded-md bg-blue-500 text-white w-full sm:w-auto"
+              >
+                Déconnexion
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={openModal}
+              className="text-gray-300 hover:text-blue-400 font-medium sm:px-4 px-2 py-1 rounded-md bg-blue-500 text-white w-full sm:w-auto"
+            >
+              Connexion
+            </button>
+          )}
         </div>
       </nav>
+
+      {isModalOpen && <LoginModal closeModal={closeModal} />}
     </header>
   );
-} 
+}
+ 
 ------------------------------------------- 
  
-[FICHIER 11] \components\LatestPost.tsx 
+[FICHIER 12] \components\LatestPost.tsx 
 ------------------------------------------- 
 // components/LatestPost.tsx
 
@@ -567,7 +683,131 @@ export default async function LatestPost() {
 } 
 ------------------------------------------- 
  
-[FICHIER 12] \components\PostCard.tsx 
+[FICHIER 13] \components\LoginModal.tsx 
+------------------------------------------- 
+'use client';
+
+import { useState } from "react";
+import { auth } from "@/lib/firebase"; // Importation de Firebase pour la gestion de l'authentification
+import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+
+export default function LoginModal({ closeModal }: { closeModal: () => void }) {
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  const handleGoogleLogin = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      closeModal(); 
+    } catch (err) {
+      console.error("Erreur lors de la connexion avec Google : ", err);
+    }
+  };
+
+  const handleEmailLogin = async () => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      closeModal(); 
+    } catch (err) {
+      setError("Erreur de connexion : Vérifiez vos identifiants.");
+    }
+  };
+
+  const handleEmailSignUp = async () => {
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      closeModal(); 
+    } catch (err) {
+      setError("Erreur de création de compte : Veuillez vérifier vos informations.");
+    }
+  };
+
+  return (
+    <div 
+      className="fixed inset-0 flex justify-center items-center z-50" 
+      style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }} // Utilisation de rgba pour un fond semi-transparent
+    >
+      <div className="bg-white p-6 rounded-lg w-96 dark:bg-gray-800 dark:text-white">
+        <h2 className="text-xl font-semibold text-center">{isLogin ? "Se connecter" : "Créer un compte"}</h2>
+        <form className="mt-4">
+          <div>
+            <label htmlFor="email" className="block text-sm">Email</label>
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full p-2 border rounded mt-1 dark:bg-gray-700 dark:text-white"
+              required
+            />
+          </div>
+          <div className="mt-2">
+            <label htmlFor="password" className="block text-sm">Mot de passe</label>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-2 border rounded mt-1 dark:bg-gray-700 dark:text-white"
+              required
+            />
+          </div>
+          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+          <div className="mt-4">
+            {isLogin ? (
+              <button
+                type="button"
+                onClick={handleEmailLogin}
+                className="w-full bg-blue-500 text-white py-2 rounded"
+              >
+                Connexion
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleEmailSignUp}
+                className="w-full bg-green-500 text-white py-2 rounded"
+              >
+                Créer un compte
+              </button>
+            )}
+          </div>
+        </form>
+
+        <div className="flex justify-center mt-4">
+          <button
+            onClick={handleGoogleLogin}
+            className="bg-red-500 text-white py-2 px-4 rounded"
+          >
+            Se connecter avec Google
+          </button>
+        </div>
+
+        <div className="mt-4 text-center">
+          <button
+            onClick={() => setIsLogin(!isLogin)}
+            className="text-blue-500 text-sm"
+          >
+            {isLogin ? "Créer un compte ?" : "Déjà un compte ?"}
+          </button>
+        </div>
+
+        <div className="mt-4 text-center">
+          <button onClick={closeModal} className="text-gray-500 dark:text-gray-300">
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+ 
+------------------------------------------- 
+ 
+[FICHIER 14] \components\PostCard.tsx 
 ------------------------------------------- 
 import Image from 'next/image';
 import Link from 'next/link';
@@ -662,15 +902,12 @@ export default function PostCard({ post }: PostCardProps) {
 [DOSSIER: \lib]                                 
 =============================================== 
  
-[FICHIER 13] \lib\firebase.js 
+[FICHIER 15] \lib\firebase.js 
 ------------------------------------------- 
-// lib/firebase.js
-
 import { initializeApp } from "firebase/app";
-// Importation du service Firestore et du type Timestamp
 import { getFirestore, Timestamp } from "firebase/firestore";
+import { getAuth } from "firebase/auth"; // Import de Firebase Auth
 
-// Configuration Firebase chargée depuis .env.local
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -680,17 +917,16 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialisation de l'application Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialisation du service Firestore
 const db = getFirestore(app);
+const auth = getAuth(app); // Initialisation de l'authentification Firebase
 
-// Exportation des services pour les autres modules
-export { db, Timestamp }; 
+export { db, Timestamp, auth };  // Exportation de auth pour l'utiliser ailleurs dans l'app
+ 
 ------------------------------------------- 
  
-[FICHIER 14] \lib\firestore.ts 
+[FICHIER 16] \lib\firestore.ts 
 ------------------------------------------- 
 // lib/firestore.ts
 
@@ -823,7 +1059,12 @@ export async function getAllPosts(): Promise<Post[]> {
  
 ------------------------------------------- 
  
-[FICHIER 15] \lib\supabaseClient.ts 
+[FICHIER 17] \lib\supabaseClient.ts 
+------------------------------------------- 
+ 
+------------------------------------------- 
+ 
+[FICHIER 18] \lib\temp.js 
 ------------------------------------------- 
  
 ------------------------------------------- 
@@ -834,7 +1075,7 @@ export async function getAllPosts(): Promise<Post[]> {
 [SECTION 3] FICHIER .ENV.LOCAL (STRUCTURE
 ======================================================= 
  
-[FICHIER 16] \.env.local             
+[FICHIER 19] \.env.local             
 ************************************************ 
 NOTA: Les valeurs sensibles sont masquees           
 ************************************************ 
@@ -846,6 +1087,7 @@ NEXT_PUBLIC_FIREBASE_PROJECT_ID=***VALUE_MASQUEE***
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=***VALUE_MASQUEE***        
 NEXT_PUBLIC_FIREBASE_APP_ID=***VALUE_MASQUEE***        
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=***VALUE_MASQUEE***        
+FIREBASE_ADMIN_KEY_PATH=***VALUE_MASQUEE***        
 # Cloudinary (solution stockage)=***VALUE_MASQUEE***        
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=***VALUE_MASQUEE***        
 NEXT_PUBLIC_CLOUDINARY_API_KEY=***VALUE_MASQUEE***        
@@ -865,9 +1107,8 @@ NEXTAUTH_SECRET=***VALUE_MASQUEE***
 RESUMÉ FINAL                                            
 ======================================================= 
  
-Nombre total de fichiers: 16             
+Nombre total de fichiers: 19             
 Dossiers inclus: app, components, lib                  
-Date de generation: 09/12/2025  8:59:40,68                        
+Date de generation: 11/12/2025 13:16:45,78                        
 ======================================================= 
-FIN DU BUNDLE                                          
 ======================================================= 
