@@ -2,12 +2,22 @@
 
 import { useState, useEffect } from 'react';
 import { Post, getAllPosts } from '@/lib/firestore';
-import { deletePost, updatePost } from '@/lib/firestore-admin'; // Ajout de updatePost
+import { deletePost, updatePost } from '@/lib/firestore-admin';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { FaEye, FaEyeSlash, FaEdit, FaTrash, FaExternalLinkAlt, FaSync, FaSearch, FaFilter } from 'react-icons/fa';
+import { 
+  FaEye, 
+  FaEyeSlash, 
+  FaEdit, 
+  FaTrash, 
+  FaExternalLinkAlt, 
+  FaSync, 
+  FaSearch, 
+  FaFilter,
+  FaUsers
+} from 'react-icons/fa';
 
 export default function AdminPage() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -134,7 +144,7 @@ export default function AdminPage() {
     }
   };
 
-  // Publier tous les brouillons
+  // AJOUT DE LA FONCTION MANQUANTE : Publier tous les brouillons
   const publishAllDrafts = async () => {
     if (window.confirm('Voulez-vous vraiment publier tous les brouillons ?')) {
       try {
@@ -208,6 +218,16 @@ export default function AdminPage() {
             </div>
             
             <div className="flex flex-wrap gap-3">
+              {/* Bouton pour gérer les utilisateurs */}
+              <Link
+                href="/admin/users"
+                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-lg transition-all duration-200 flex items-center gap-2 shadow-lg hover:shadow-xl"
+                title="Gérer les utilisateurs et les rôles"
+              >
+                <FaUsers className="text-lg" />
+                Gérer les utilisateurs
+              </Link>
+              
               <Link
                 href="/admin/new"
                 className="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-medium rounded-lg transition-all duration-200 flex items-center gap-2 shadow-lg hover:shadow-xl"
