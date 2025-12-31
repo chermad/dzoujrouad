@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mon Blog Moto
 
-## Getting Started
+Projet de blog développé avec **Next.js (App Router)**, **Firebase**, **Tailwind CSS**  
+et un espace d’administration sécurisé pour la gestion des articles.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🚀 Stack technique
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Next.js 15 (App Router)**
+- **React**
+- **TypeScript**
+- **Tailwind CSS**
+- **Firebase (Auth + Firestore)**
+- **Quill (éditeur de texte riche natif)**
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## ✍️ Éditeur de contenu (Quill)
 
-## Learn More
+Le projet utilise **Quill natif** pour l’édition de texte riche dans l’interface d’administration.
 
-To learn more about Next.js, take a look at the following resources:
+- Le contenu est stocké **au format HTML** dans Firestore
+- Le rendu est identique côté admin et côté public
+- Les articles doivent être créés ou édités via Quill pour garantir la compatibilité du format HTML
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## ⚙️ Build & configuration
 
-## Deploy on Vercel
+### Choix de la version de Next.js
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Le projet utilise **Next.js 15.x** pour garantir une stabilité maximale en production.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+> Next.js 16 a été testé, mais a provoqué des erreurs de build sur Vercel liées à :
+> - Turbopack
+> - Lightning CSS
+> - l’import de feuilles CSS tierces (ex : Quill)
+
+👉 **Next.js 15 utilise Webpack**, ce qui évite ces problèmes.
+
+---
+
+### ⚠️ À propos d’ESLint
+
+ESLint est **désactivé lors du build de production**, mais :
+
+- ✅ **ESLint reste actif en développement** (`next dev`)
+- ✅ Les erreurs sont visibles dans l’éditeur (VS Code)
+- ❌ ESLint ne bloque pas le build en production
+
+Ce choix a été fait pour :
+- éviter les blocages liés à des règles strictes
+- permettre une mise en production stable
+- prévoir un **nettoyage progressif du code**
+
+👉 ESLint pourra être réactivé plus tard une fois le code harmonisé.
+
+---
+
+## 🌍 Déploiement
+
+Le projet est déployé sur **Vercel**.
+
+⚠️ Lors de changements importants (version de Next.js, moteur de build, cache CSS) :
+- le **cache de build Vercel doit être vidé manuellement**
+
+---
+
+## 👤 Accès administrateur
+
+- Authentification via Firebase
+- Gestion des rôles avec **Custom Claims**
+- Accès admin réservé aux utilisateurs avec le rôle `admin`
+
+---
+
+## ✅ État du projet
+
+- Blog public : ✅ fonctionnel
+- Interface admin : ✅ fonctionnelle
+- Création / édition d’articles : ✅
+- Déploiement Vercel : ✅ stable
+Fin.
