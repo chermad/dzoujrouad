@@ -1,117 +1,154 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import "quill/dist/quill.snow.css";
+import { useEffect, useRef, useState, useCallback } from "react";
 
-type RichTextEditorProps = {
+
+interface RichTextEditorProps {
   value: string;
-  onChange: (html: string) => void;
+  onChange: (content: string) => void;
+  placeholder?: string;
   className?: string;
-};
+}
 
 export default function RichTextEditor({
   value,
   onChange,
+  placeholder = "Écrivez votre contenu ici...",
   className = "",
 }: RichTextEditorProps) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const quillRef = useRef<any>(null);
-  const [isQuillReady, setIsQuillReady] = useState(false);
+  const editorRef = useRef<HTMLDivElement>(null);
+  const quillInstanceRef = useRef<any>(null);
+  const [isReady, setIsReady] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Initialisation de Quill
-  useEffect(() => {
-    let isMounted = true;
+  const initializeQuill = useCallback(async () => {
+    if (!editorRef.current || quillInstanceRef.current) return;
 
-    const initQuill = async () => {
-      // Ne rien faire si pas monté ou déjà initialisé
-      if (!isMounted || !containerRef.current || quillRef.current) return;
+    try {
+      setIsLoading(true);
+      console.log("🔄 Initialisation de Quill...");
 
-      try {
-        // Import dynamique de Quill
-        const Quill = (await import("quill")).default;
+      // Import dynamique
+      const Quill = (await import("quill")).default;
 
-        if (!isMounted || !containerRef.current) return;
+      // Configuration de Quill
+      quillInstanceRef.current = new Quill(editorRef.current, {
+        theme: "snow",
+        placeholder,
+        modules: {
+          toolbar: [
+            [{ header: [1, 2, 3, false] }],
+            ["bold", "italic", "underline", "strike"],
+            [{ color: [] }, { background: [] }],
+            [{ list: "ordered" }, { list: "bullet" }],
+            ["link", "image"],
+            ["clean"],
+          ],
+        },
+      });
 
-        // Créer un conteneur spécifique pour Quill
-        const editorContainer = document.createElement("div");
-        editorContainer.className = "quill-editor-container";
-        containerRef.current.innerHTML = ""; // Nettoyer
-        containerRef.current.appendChild(editorContainer);
-
-        // Initialiser Quill
-        quillRef.current = new Quill(editorContainer, {
-          theme: "snow",
-          placeholder: "Écrivez le contenu de l'article ici...",
-          modules: {
-            toolbar: [
-              [{ header: [1, 2, 3, false] }],
-              ["bold", "italic", "underline", "strike"],
-              [{ color: [] }, { background: [] }],
-              [{ list: "ordered" }, { list: "bullet" }],
-              ["link", "image", "clean"],
-            ],
-          },
-        });
-
-        // Définir le contenu initial
-        if (value && quillRef.current) {
-          quillRef.current.root.innerHTML = value;
+      // Écouter les changements
+      quillInstanceRef.current.on("text-change", () => {
+        if (quillInstanceRef.current) {
+          const content = quillInstanceRef.current.root.innerHTML;
+          onChange(content);
         }
+      });
 
-        // Écouter les changements
-        quillRef.current.on("text-change", () => {
-          if (quillRef.current && isMounted) {
-            const html = quillRef.current.root.innerHTML;
-            onChange(html);
-          }
-        });
+      // Marquer comme prêt
+      setIsReady(true);
+      setIsLoading(false);
+      console.log("✅ Quill initialisé");
 
-        setIsQuillReady(true);
-      } catch (error) {
-        console.error("Erreur d'initialisation de Quill:", error);
-      }
-    };
+    } catch (error) {
+      console.error("❌ Erreur d'initialisation Quill:", error);
+      setIsLoading(false);
+    }
+  }, [onChange, placeholder]);
 
-    initQuill();
+  // Effet d'initialisation
+  useEffect(() => {
+    initializeQuill();
 
     return () => {
-      isMounted = false;
-      if (quillRef.current) {
+      if (quillInstanceRef.current) {
         try {
-          quillRef.current.off("text-change");
+          quillInstanceRef.current.off("text-change");
         } catch (e) {
-          // Ignorer les erreurs de nettoyage
+          // Ignorer
         }
-        quillRef.current = null;
+        quillInstanceRef.current = null;
       }
-      setIsQuillReady(false);
+      setIsReady(false);
     };
-  }, []); // Une seule initialisation
+  }, [initializeQuill]);
 
-  // Synchroniser la valeur externe avec Quill
+  // Effet pour synchroniser la valeur externe
   useEffect(() => {
-    if (quillRef.current && isQuillReady && value !== undefined) {
-      // Ne mettre à jour que si le contenu est différent
-      const currentContent = quillRef.current.root.innerHTML;
+    if (quillInstanceRef.current && isReady && value !== undefined) {
+      const currentContent = quillInstanceRef.current.root.innerHTML;
+      
+      // Mettre à jour uniquement si différent
       if (currentContent !== value) {
-        quillRef.current.root.innerHTML = value;
+        console.log("📥 Injection du contenu dans Quill:", 
+          value?.substring(0, 100) + "...");
+        quillInstanceRef.current.root.innerHTML = value || "<p></p>";
       }
     }
-  }, [value, isQuillReady]);
+  }, [value, isReady]);
+
+  // Fonction pour forcer la mise à jour
+  const forceUpdateContent = useCallback(() => {
+    if (quillInstanceRef.current && value !== undefined) {
+      console.log("🔧 Forcer la mise à jour du contenu");
+      quillInstanceRef.current.root.innerHTML = value || "<p></p>";
+    }
+  }, [value]);
 
   return (
-    <div className={`min-h-[400px] ${className}`}>
-      <div ref={containerRef} className="h-full" />
-      
+    <div className={`relative ${className}`}>
       {/* Indicateur de chargement */}
-      {!isQuillReady && (
-        <div className="flex items-center justify-center h-full bg-gray-50 rounded-lg border">
+      {isLoading && (
+        <div className="absolute inset-0 z-10 bg-slate-800/80 flex items-center justify-center rounded-lg">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-            <p className="text-gray-500 text-sm">Chargement de l'éditeur...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
+            <p className="text-white text-sm">Chargement de l'éditeur...</p>
           </div>
         </div>
       )}
+
+      {/* Bouton de debug */}
+      <div className="absolute top-2 right-2 z-20 flex gap-2">
+        <button
+          type="button"
+          onClick={forceUpdateContent}
+          className="px-2 py-1 text-xs bg-blue-600 text-white rounded opacity-50 hover:opacity-100 transition-opacity"
+          title="Forcer la mise à jour du contenu"
+        >
+          🔧
+        </button>
+        <span className="px-2 py-1 text-xs bg-gray-800 text-gray-300 rounded">
+          {isReady ? "✅" : "🔄"}
+        </span>
+      </div>
+
+      {/* Conteneur de l'éditeur */}
+      <div 
+        ref={editorRef} 
+        className="min-h-[400px] bg-white text-black rounded-lg overflow-hidden"
+      />
+
+      {/* Informations de debug */}
+      <div className="mt-2 text-xs text-gray-500 flex justify-between">
+        <span>
+          {isReady ? "Éditeur prêt" : "Chargement..."} | 
+          Contenu: {value?.length || 0} caractères
+        </span>
+        <span className="text-blue-400 cursor-help" title={value?.substring(0, 200)}>
+          Aperçu
+        </span>
+      </div>
     </div>
   );
 }
