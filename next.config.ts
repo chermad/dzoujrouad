@@ -10,32 +10,25 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "storage.canalblog.com",
-        port: "",
         pathname: "/**",
       },
       {
         protocol: "https",
         hostname: "images.pexels.com",
-        port: "",
         pathname: "/**",
       },
       {
         protocol: "https",
         hostname: "res.cloudinary.com",
-        port: "",
         pathname: "/**",
       },
     ],
   },
 
-  // ⚠️ TypeScript n’est pas encore à jour sur turbo
+  // 🚫 Désactiver Turbopack en production (clé de la stabilité)
   experimental: {
-    turbo: {
-      loaders: {
-        ".css": ["postcss-loader"],
-      },
-    },
-  } as any, // 👈 clé magique
+    turbo: false,
+  } as any,
 };
 
 export default nextConfig;
