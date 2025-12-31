@@ -144,7 +144,7 @@ export default function AdminPage() {
     }
   };
 
-  // AJOUT DE LA FONCTION MANQUANTE : Publier tous les brouillons
+  // Publier tous les brouillons
   const publishAllDrafts = async () => {
     if (window.confirm('Voulez-vous vraiment publier tous les brouillons ?')) {
       try {
@@ -440,9 +440,9 @@ export default function AdminPage() {
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex gap-2">
-                          {/* Bouton Modifier */}
+                          {/* Bouton Modifier - CORRIGÉ : utilise post.slug */}
                           <Link
-                            href={`/admin/edit/${post.id}`}
+                            href={`/admin/edit/${post.slug}`}
                             className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white text-sm font-medium rounded-lg transition-all duration-200 flex items-center gap-1.5 hover:scale-105"
                             title="Modifier"
                           >
