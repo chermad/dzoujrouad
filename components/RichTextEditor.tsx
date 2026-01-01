@@ -7,156 +7,127 @@ type RichTextEditorProps = {
   value: string;
   onChange: (html: string) => void;
   placeholder?: string;
+  className?: string;
 };
 
 export default function RichTextEditor({
   value,
   onChange,
-  placeholder = "Compose your content...",
+  placeholder = "Écrivez votre contenu…",
+  className,
 }: RichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement | null>(null);
-  const quillRef = useRef<any>(null);
-  const [isQuillLoaded, setIsQuillLoaded] = useState(false);
+  const quillRef = useRef<any>(null); // 👈 volontairement any
+  const [ready, setReady] = useState(false);
 
-  // 1️⃣ Initialisation de Quill (UNE SEULE FOIS)
+  /**
+   * 1️⃣ Initialisation de Quill (UNE SEULE FOIS)
+   */
   useEffect(() => {
     if (!editorRef.current || quillRef.current) return;
 
     let mounted = true;
-    let quillInstance: any = null;
 
     const initQuill = async () => {
-      try {
-        // Dynamic import pour réduire le bundle initial
-        const Quill = (await import("quill")).default;
+      const Quill = (await import("quill")).default as any;
 
-        if (!mounted || !editorRef.current) return;
+      if (!mounted || !editorRef.current) return;
 
-        // Configuration des polices
-        const Font = Quill.import("formats/font")as any;
-        Font.whitelist = ["sans-serif", "serif", "monospace", "inter", "roboto"];
-        Quill.register(Font, true);
+      // ----- FONTS -----
+      const Font = Quill.import("formats/font");
+      Font.whitelist = ["sans-serif", "serif", "monospace", "inter", "roboto"];
+      Quill.register(Font, true);
 
-        // Configuration des tailles
-        const Size = Quill.import("attributors/style/size") as any;
-        Size.whitelist = ["12px", "14px", "16px", "18px", "24px", "32px", "48px"];
-        Quill.register(Size, true);
+      // ----- TAILLES -----
+      const Size = Quill.import("attributors/style/size");
+      Size.whitelist = ["12px", "14px", "16px", "18px", "24px", "32px", "48px"];
+      Quill.register(Size, true);
 
-        // Création de l'instance Quill
-        quillInstance = new Quill(editorRef.current, {
-          theme: "snow",
-          placeholder,
-          modules: {
-            toolbar: [
-              [{ font: Font.whitelist }],
-              [{ size: Size.whitelist }],
-              [{ header: [1, 2, 3, 4, 5, 6, false] }],
-              ["bold", "italic", "underline", "strike"],
-              [{ color: [] }, { background: [] }],
-              [{ script: "sub" }, { script: "super" }],
-              ["blockquote", "code-block"],
-              [{ list: "ordered" }, { list: "bullet" }],
-              [{ indent: "-1" }, { indent: "+1" }],
-              [{ direction: "rtl" }, { align: [] }],
-              ["link", "image", "video"],
-              ["clean"],
-            ],
-            clipboard: {
-              matchVisual: false,
-            },
-          },
-        });
+      // ----- INSTANCE -----
+      const quill = new Quill(editorRef.current, {
+        theme: "snow",
+        placeholder,
+        modules: {
+          toolbar: [
+            [{ font: Font.whitelist }],
+            [{ size: Size.whitelist }],
+            [{ header: [1, 2, 3, false] }],
 
-        // Gestion des changements de texte
-        quillInstance.on("text-change", () => {
-          if (onChange) {
-            const html = quillInstance.root.innerHTML;
-            // Éviter les appels inutiles
-            if (html !== "<p><br></p>") {
-              onChange(html);
-            } else {
-              onChange("");
-            }
-          }
-        });
+            ["bold", "italic", "underline", "strike"],
+            [{ color: [] }, { background: [] }],
 
-        // Contenu initial
-        if (value && value.trim()) {
-          quillInstance.clipboard.dangerouslyPasteHTML(value);
-        }
+            [{ script: "sub" }, { script: "super" }],
+            ["blockquote", "code-block"],
 
-        quillRef.current = quillInstance;
-        setIsQuillLoaded(true);
+            [{ list: "ordered" }, { list: "bullet" }],
+            [{ indent: "-1" }, { indent: "+1" }],
 
-      } catch (error) {
-        console.error("Failed to initialize Quill:", error);
-        if (mounted) {
-          setIsQuillLoaded(false);
-        }
+            [{ direction: "rtl" }, { align: [] }],
+
+            ["link", "image", "video"],
+            ["clean"],
+          ],
+        },
+      });
+
+      // ----- CONTENU INITIAL -----
+      if (value) {
+        quill.clipboard.dangerouslyPasteHTML(value);
       }
+
+      // ----- CHANGE HANDLER -----
+      quill.on("text-change", () => {
+        const html = quill.root.innerHTML;
+        onChange(html === "<p><br></p>" ? "" : html);
+      });
+
+      quillRef.current = quill;
+      setReady(true);
     };
 
     initQuill();
 
     return () => {
       mounted = false;
-      if (quillInstance) {
-        quillInstance.off("text-change");
-      }
-    };
-  }, []);
-
-  // 2️⃣ Synchronisation du contenu externe
-  useEffect(() => {
-    if (!quillRef.current || !isQuillLoaded) return;
-
-    const quill = quillRef.current;
-    const currentHTML = quill.root.innerHTML;
-
-    // Comparaison en ignorant les différences de formatage HTML mineures
-    const normalizeHTML = (html: string) => {
-      return html
-        .replace(/\s+/g, " ")
-        .replace(/>\s+</g, "><")
-        .trim();
-    };
-
-    const normalizedValue = normalizeHTML(value || "");
-    const normalizedCurrent = normalizeHTML(currentHTML);
-
-    if (normalizedValue !== normalizedCurrent && value !== undefined) {
-      // Sauvegarder la position du curseur
-      const selection = quill.getSelection();
-      quill.clipboard.dangerouslyPasteHTML(value || "");
-      
-      // Restaurer la position du curseur si possible
-      if (selection) {
-        setTimeout(() => {
-          quill.setSelection(selection);
-        }, 0);
-      }
-    }
-  }, [value, isQuillLoaded]);
-
-  // 3️⃣ Nettoyage
-  useEffect(() => {
-    return () => {
       if (quillRef.current) {
+        quillRef.current.off("text-change");
         quillRef.current = null;
       }
     };
   }, []);
 
+  /**
+   * 2️⃣ Synchronisation valeur externe → Quill
+   */
+  useEffect(() => {
+    if (!ready || !quillRef.current) return;
+
+    const quill = quillRef.current;
+    const currentHTML = quill.root.innerHTML;
+
+    if (value !== currentHTML) {
+      const selection = quill.getSelection();
+      quill.clipboard.dangerouslyPasteHTML(value || "");
+      if (selection) {
+        quill.setSelection(selection);
+      }
+    }
+  }, [value, ready]);
+
+  /**
+   * 3️⃣ RENDER
+   */
   return (
-    <div className="rich-text-editor-container">
-      <div 
-        ref={editorRef} 
+    <div className={`rich-text-editor-container ${className ?? ""}`}>
+      <div
+        ref={editorRef}
         className="quill-editor"
-        style={{ minHeight: "200px" }}
+        style={{ minHeight: "300px" }}
       />
-      {!isQuillLoaded && (
-        <div className="quill-loading">
-          Loading editor...
+
+      {!ready && (
+        <div className="text-sm text-gray-500 mt-2">
+          Chargement de l’éditeur…
         </div>
       )}
     </div>
