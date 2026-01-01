@@ -1,10 +1,18 @@
+/* ============================
+   IMPORTS (TOUJOURS EN HAUT)
+============================ */
+
 @import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Roboto&family=Cairo:wght@400;700&family=Amiri&display=swap");
+
+/* ============================
+   VARIABLES & BASE
+============================ */
 
 /* Désactive le dark mode forcé de Chrome Android */
 html {
   color-scheme: light dark;
 }
-
 
 :root {
   --background: #ffffff;
@@ -30,5 +38,36 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
-/* Quill editor styles */
-@import "quill/dist/quill.snow.css";
+
+/* ============================
+   QUILL – POLICES
+============================ */
+
+.ql-font-inter {
+  font-family: "Inter", sans-serif;
+}
+
+.ql-font-roboto {
+  font-family: "Roboto", sans-serif;
+}
+
+.ql-font-cairo {
+  font-family: "Cairo", sans-serif;
+}
+
+.ql-font-amiri {
+  font-family: "Amiri", serif;
+}
+
+.ql-font-arial {
+  font-family: Arial, sans-serif;
+}
+
+.ql-font-tahoma {
+  font-family: Tahoma, sans-serif;
+}
+
+/* Meilleure lisibilité RTL */
+.ql-editor[dir="rtl"] {
+  text-align: right;
+}
