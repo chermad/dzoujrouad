@@ -1,7 +1,7 @@
 ======================================================= 
 BUNDLE COMPLET DU PROJET NEXT.JS                      
 ======================================================= 
-Date: 15/01/2026  9:19:41,28                                      
+Date: 15/01/2026 10:37:59,86                                      
 Dossier: C:\Users\Lenovo\Documents\webdev\Mon-blog\mon-blog                                 
 Dossiers inclus: app, components, lib                  
 ======================================================= 
@@ -2749,9 +2749,13 @@ export default async function AllPosts() {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
-      {posts.map(post => (
-        <PostCard key={post.id} post={post} />
-      ))}
+      {posts.map(post => {
+      const postWithExcerpt = {
+        ...post,
+        excerpt: (post as any).excerpt ?? ((post as any).content ?? '').slice(0, 160),
+      };
+      return <PostCard key={post.id} post={postWithExcerpt} />;
+      })}
     </div>
   );
 } 
@@ -2911,24 +2915,17 @@ export default function Header() {
 [FICHIER 19] \components\LatestPost.tsx 
 ------------------------------------------- 
 import Link from "next/link";
+import { getLatestPost } from "@/lib/firestore";
 import SmartImage from "./SmartImage";
 
-type LatestPostProps = {
-  post?: {
-    slug: string;
-    title: string;
-    imageUrl: string;
-  } | null;
-};
+export default async function LatestPost() {
+  const post = await getLatestPost();
 
-export default function LatestPost({ post }: LatestPostProps) {
-  if (!post) {
+  if (!post || !post.isPublished) {
     return (
       <div className="w-full h-[400px] rounded-xl bg-slate-800 animate-pulse" />
     );
   }
-
-  if (!post.slug) return null;
 
   return (
     <Link href={`/posts/${post.slug}`}>
@@ -3077,35 +3074,42 @@ export default function LoginModal({ closeModal }: { closeModal: () => void }) {
  
 [FICHIER 21] \components\PostCard.tsx 
 ------------------------------------------- 
+"use client";
+
 import Link from "next/link";
 import SmartImage from "./SmartImage";
 
+export type PostCardPost = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  imageUrl?: string;
+};
+
 type PostCardProps = {
-  post: {
-    slug: string;
-    title: string;
-    excerpt: string;
-    imageUrl: string;
-  };
+  post: PostCardPost;
 };
 
 export default function PostCard({ post }: PostCardProps) {
   return (
     <Link href={`/posts/${post.slug}`}>
-      <div className="rounded-xl overflow-hidden bg-slate-800 hover:scale-[1.01] transition">
-        <div className="relative h-56 w-full">
+      <div className="group rounded-xl overflow-hidden shadow hover:shadow-lg transition bg-white dark:bg-slate-900">
+        <div className="relative w-full h-48">
           <SmartImage
             src={post.imageUrl}
             alt={post.title}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
           />
         </div>
 
         <div className="p-4">
-          <h3 className="text-lg font-semibold text-white mb-2">
+          <h3 className="text-lg font-semibold mb-2 group-hover:text-blue-600 transition">
             {post.title}
           </h3>
-          <p className="text-sm text-slate-300">
+
+          <p className="text-sm text-gray-600 dark:text-gray-300">
             {post.excerpt}
           </p>
         </div>
@@ -3258,16 +3262,18 @@ export default function RichTextEditor({
  
 [FICHIER 23] \components\SmartImage.tsx 
 ------------------------------------------- 
+// components/SmartImage.tsx - VERSION CORRIGÉE
 "use client";
 
 import { useState } from "react";
 
 type SmartImageProps = {
-  src: string;
+  src?: string; // <-- Rendre optionnel avec ?
   alt: string;
   className?: string;
   fallbackSrc?: string;
   loading?: "lazy" | "eager";
+  fill?: boolean; // <-- Ajouter si utilisé avec fill
 };
 
 export default function SmartImage({
@@ -3276,22 +3282,31 @@ export default function SmartImage({
   className = "",
   fallbackSrc = "/image-fallback.png",
   loading = "lazy",
+  fill = false, // <-- Valeur par défaut
 }: SmartImageProps) {
   const [hasError, setHasError] = useState(false);
 
+  // Si pas de source ou erreur, utiliser le fallback
+  const imageSrc = !src || hasError ? fallbackSrc : src;
+
+  // Gérer le style pour fill
+  const imageClassName = fill 
+    ? `${className} object-cover w-full h-full`
+    : className;
+
   return (
     <img
-      src={hasError ? fallbackSrc : src}
+      src={imageSrc}
       alt={alt}
       loading={loading}
       decoding="async"
       referrerPolicy="no-referrer"
       onError={() => setHasError(true)}
-      className={className}
+      className={imageClassName}
+      style={fill ? { position: "absolute", inset: 0 } : undefined}
     />
   );
-}
- 
+} 
 ------------------------------------------- 
  
  
@@ -3897,7 +3912,7 @@ RESUMÉ FINAL
  
 Nombre total de fichiers: 31             
 Dossiers inclus: app, components, lib                  
-Date de generation: 15/01/2026  9:19:41,28                        
+Date de generation: 15/01/2026 10:37:59,86                        
 ======================================================= 
 FIN DU BUNDLE                                          
 ======================================================= 
